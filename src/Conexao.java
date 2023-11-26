@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 public class Conexao implements Runnable {
 
     public static List<Conexao> conexoes = new CopyOnWriteArrayList<>();
+    static final String ARQUIVO_LOG = "historico.txt";
 
     private Socket socket;
     private BufferedReader bufferedReader;
@@ -47,13 +48,14 @@ public class Conexao implements Runnable {
         }
     }
 
-    public void transmissaoDeMenssagem(String menssagemParaEnviar) {
+    public void transmissaoDeMenssagem(String mensagemParaEnviar) {
         for (Conexao conexao : conexoes) {
             try {
                 if (!conexao.usuarioNome.equals(usuarioNome)) {
-                    conexao.bufferedWriter.write(menssagemParaEnviar);
+                    conexao.bufferedWriter.write(mensagemParaEnviar);
                     conexao.bufferedWriter.newLine();
                     conexao.bufferedWriter.flush();
+                    adicionarAoLog(mensagemParaEnviar);
                 }
             } catch (IOException e) {
                 encerrarTudo();
@@ -82,6 +84,16 @@ public class Conexao implements Runnable {
             if (socket != null) {
                 socket.close();
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static synchronized void adicionarAoLog(String mensagem) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ARQUIVO_LOG, true))) {
+            writer.write(mensagem);
+            writer.newLine();
+            writer.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }

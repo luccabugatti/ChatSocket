@@ -34,18 +34,19 @@ public class Usuario {
 
             Scanner scanner = new Scanner(System.in);
             while (socket.isConnected()) {
-                String menssagemParaEnviar = scanner.nextLine();
-                if("/sair".equalsIgnoreCase(menssagemParaEnviar)){
-                    fecharTudo();
+                String mensagemParaEnviar = scanner.nextLine();
+                if("/sair".equalsIgnoreCase(mensagemParaEnviar)){
                     System.exit(0);
-                }else if("/limpar".equalsIgnoreCase(menssagemParaEnviar)){
+                }else if("/limpar".equalsIgnoreCase(mensagemParaEnviar)){
                    limparTerminal(); 
                 }else{
                     agora = LocalDateTime.now();
                     String agoraFormatado = agora.format(formatter);
-                    bufferedWriter.write(agoraFormatado + " " + usuarioNome + ": " + menssagemParaEnviar);
+                    String mensagem = agoraFormatado + " " + usuarioNome + ": " + mensagemParaEnviar;
+                    bufferedWriter.write(mensagem);
                     bufferedWriter.newLine();
                     bufferedWriter.flush(); 
+                    adicionarAoLog(mensagem);
                 }
             }
             scanner.close();
@@ -99,6 +100,16 @@ public class Usuario {
             e.printStackTrace();
         }
     }   
+
+    private void adicionarAoLog(String mensagem) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(Conexao.ARQUIVO_LOG, true))) {
+            writer.write(mensagem);
+            writer.newLine();
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     public static void main(String[] args) throws IOException {
         Scanner scanner = new Scanner(System.in);
