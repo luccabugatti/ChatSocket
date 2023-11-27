@@ -9,6 +9,7 @@ public class Usuario {
     private BufferedWriter bufferedWriter;
     private String usuarioNome;
 
+    // Construtor que inicializa a conexão do usuário
     public Usuario(Socket socket, String usuarioNome) {
         try {
             this.socket = socket;
@@ -21,8 +22,10 @@ public class Usuario {
         }
     }
 
+    // Método para enviar mensagens
     public void enviarMensagem() {
         try {
+            // Envia o nome de usuário ao servidor
             bufferedWriter.write(usuarioNome);
             bufferedWriter.newLine();
             bufferedWriter.flush();
@@ -35,6 +38,7 @@ public class Usuario {
                 }else if("/limpar".equalsIgnoreCase(mensagemParaEnviar)){
                    limparTerminal(); 
                 }else{
+                    // Envia a mensagem ao servidor
                     bufferedWriter.write(mensagemParaEnviar);
                     bufferedWriter.newLine();
                     bufferedWriter.flush(); 
@@ -47,10 +51,12 @@ public class Usuario {
         }
     }
 
+    // Método para aguardar mensagens do servidor em uma thread separada
     public void aguardarMensagem() {
         new Thread(() -> {
             while (socket.isConnected()) {
                 try {
+                    // Lê mensagens do servidor e imprime no console
                     String mensagemParaGrupo = bufferedReader.readLine();
                     System.out.println(mensagemParaGrupo);
                 } catch (IOException e) {
@@ -61,6 +67,7 @@ public class Usuario {
         }).start();
     }
 
+    // Método para fechar todos os recursos associados ao usuário
     public void fecharTudo() {
         try {
             if (bufferedReader != null) {
@@ -77,6 +84,7 @@ public class Usuario {
         }
     }
 
+    // Método estático para limpar o terminal
     public static void limparTerminal(){    
         try {
             final String os = System.getProperty("os.name");
@@ -92,12 +100,14 @@ public class Usuario {
         }
     }   
 
+    // Método principal para iniciar a aplicação do usuário
     public static void main(String[] args) throws IOException {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Digite seu nome: ");
         String usuarioNome = scanner.nextLine();
 
         try (Socket socket = new Socket("localhost", 6666)) {
+             // Cria uma instância de usuário e inicia as operações de envio e recebimento de mensagens
             Usuario usuario = new Usuario(socket, usuarioNome);
             usuario.aguardarMensagem();
             usuario.enviarMensagem();

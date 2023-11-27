@@ -8,16 +8,18 @@ public class Servidor {
 
     private final ServerSocket servidorSocket;
 
+    // Construtor que recebe um ServerSocket para inicializar o servidor
     public Servidor(ServerSocket servidorSocket) {
         this.servidorSocket = servidorSocket;
     }
 
+    // Método para iniciar o servidor e aguardar conexões de usuários
     public void iniciarServidor() {
         try {
-            // Aguarda os usuarios se conectarem na porta 6666.           
+            // Aguarda os usuários se conectarem na porta 6666.           
             while (!servidorSocket.isClosed()) {
 
-                // Será fechado no Usuario.
+                // Aceita a conexão do cliente
                 Socket socket = servidorSocket.accept();
                 LocalDateTime agora = LocalDateTime.now();
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
@@ -25,11 +27,11 @@ public class Servidor {
 
                 System.out.println(agoraFormatado + " Um novo usuário foi conectado!");
 
+                // Cria uma instância de Conexao para lidar com a conexão do usuário
                 Conexao conexao = new Conexao(socket);
                 Thread thread = new Thread(conexao);
 
-                // O metodo start começa uma nova thread.
-                // Ao chamar start() o metodo run é iniciado.
+                // Inicia uma nova thread para a conexão do usuário
                 thread.start();
             }
         } catch (IOException e) {
@@ -37,7 +39,7 @@ public class Servidor {
         }
     }
 
-    // Fecha o servidor
+    // Método para encerrar o servidor
     public void encerrarServidor() {
         try {
             if (servidorSocket != null) {
@@ -48,7 +50,7 @@ public class Servidor {
         }
     }
 
-    // Roda o programa
+    // Método principal para iniciar o servidor
     public static void main(String[] args) throws IOException {
         try (ServerSocket servidorSocket = new ServerSocket(6666)) {
             Servidor server = new Servidor(servidorSocket);
