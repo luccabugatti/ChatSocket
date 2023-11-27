@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.time.LocalDateTime;
@@ -15,6 +16,7 @@ public class Conexao implements Runnable {
     private BufferedReader bufferedReader;
     private BufferedWriter bufferedWriter;
     private String usuarioNome;
+    private List<String> usuariosBloqueados = new ArrayList<>();
 
     public Conexao(Socket socket) {
         try {
@@ -36,12 +38,19 @@ public class Conexao implements Runnable {
 
     @Override
     public void run() {
-        String menssagemDoUsuario;
+        String mensagemDoUsuario;
 
         while (socket.isConnected()) {
             try {
-                menssagemDoUsuario = bufferedReader.readLine();
-                transmissaoDeMenssagem(menssagemDoUsuario);
+                mensagemDoUsuario = bufferedReader.readLine();
+
+                if (mensagemDoUsuario.trim().toLowerCase().startsWith("/bloquear")) {
+                    usuariosBloqueados.add(mensagemDoUsuario.substring("/bloquear ".length()));
+                } else if(mensagemDoUsuario.trim().toLowerCase().startsWith("/desbloquear")){
+                    usuariosBloqueados.remove(mensagemDoUsuario.substring("/desbloquear ".length()));
+                }else{
+                    transmissaoDeMenssagem(mensagemDoUsuario);
+                }
             } catch (IOException e) {
                 encerrarTudo();
                 break;
@@ -63,13 +72,13 @@ public class Conexao implements Runnable {
                     String agoraFormatado = agora.format(formatter);
                     String mensagem = agoraFormatado + " (Privado para " + destinatario + ") " + usuarioNome + ": " + mensagemPrivada;
 
-                    if (conexao.usuarioNome.equals(destinatario)) {
+                    if (!usuariosBloqueados.contains(destinatario) && !conexao.usuariosBloqueados.contains(usuarioNome) && conexao.usuarioNome.equals(destinatario)) {
                         conexao.bufferedWriter.write(mensagem);
                         conexao.bufferedWriter.newLine();
                         conexao.bufferedWriter.flush();
                         adicionarAoLog(mensagem);
                     }   
-                }else{
+                }else if (!usuariosBloqueados.contains(conexao.usuarioNome) && !conexao.usuariosBloqueados.contains(usuarioNome)){
                     LocalDateTime agora = LocalDateTime.now();
                     String agoraFormatado = agora.format(formatter);
                     String mensagem = agoraFormatado + " " + usuarioNome + ": " + mensagemParaEnviar;
