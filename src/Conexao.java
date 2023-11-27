@@ -9,6 +9,7 @@ public class Conexao implements Runnable {
 
     public static List<Conexao> conexoes = new CopyOnWriteArrayList<>();
     static final String ARQUIVO_LOG = "historico.txt";
+    static final String pattern = "HH:mm";
 
     private Socket socket;
     private BufferedReader bufferedReader;
@@ -25,7 +26,7 @@ public class Conexao implements Runnable {
             conexoes.add(this);
 
             LocalDateTime agora = LocalDateTime.now();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
             String agoraFormatado = agora.format(formatter);
             transmissaoDeMenssagem(agoraFormatado + " SERVIDOR: " + usuarioNome + " entrou no chat.");
         } catch (IOException e) {
@@ -49,14 +50,37 @@ public class Conexao implements Runnable {
     }
 
     public void transmissaoDeMenssagem(String mensagemParaEnviar) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+
         for (Conexao conexao : conexoes) {
             try {
-                if (!conexao.usuarioNome.equals(usuarioNome)) {
-                    conexao.bufferedWriter.write(mensagemParaEnviar);
-                    conexao.bufferedWriter.newLine();
-                    conexao.bufferedWriter.flush();
-                    adicionarAoLog(mensagemParaEnviar);
-                }
+                if(mensagemParaEnviar.trim().toLowerCase().startsWith("/privado")){
+                    String[] partes = mensagemParaEnviar.split(" ", 3);
+                    String destinatario = partes[1];
+                    String mensagemPrivada = partes[2];
+
+                    LocalDateTime agora = LocalDateTime.now();
+                    String agoraFormatado = agora.format(formatter);
+                    String mensagem = agoraFormatado + " (Privado para " + destinatario + ") " + usuarioNome + ": " + mensagemPrivada;
+
+                    if (conexao.usuarioNome.equals(destinatario)) {
+                        conexao.bufferedWriter.write(mensagem);
+                        conexao.bufferedWriter.newLine();
+                        conexao.bufferedWriter.flush();
+                        adicionarAoLog(mensagem);
+                    }   
+                }else{
+                    LocalDateTime agora = LocalDateTime.now();
+                    String agoraFormatado = agora.format(formatter);
+                    String mensagem = agoraFormatado + " " + usuarioNome + ": " + mensagemParaEnviar;
+
+                    if (!conexao.usuarioNome.equals(usuarioNome)) {
+                        conexao.bufferedWriter.write(mensagem);
+                        conexao.bufferedWriter.newLine();
+                        conexao.bufferedWriter.flush();
+                        adicionarAoLog(mensagem);
+                    }
+                }               
             } catch (IOException e) {
                 encerrarTudo();
             }
@@ -67,7 +91,7 @@ public class Conexao implements Runnable {
         conexoes.remove(this);
 
         LocalDateTime agora = LocalDateTime.now();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
         String agoraFormatado = agora.format(formatter);
         transmissaoDeMenssagem(agoraFormatado + " SERVIDOR: " + usuarioNome + " saiu do chat.");
     }

@@ -1,8 +1,6 @@
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 public class Usuario {
 
@@ -24,9 +22,6 @@ public class Usuario {
     }
 
     public void enviarMensagem() {
-        LocalDateTime agora;
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
-
         try {
             bufferedWriter.write(usuarioNome);
             bufferedWriter.newLine();
@@ -40,13 +35,9 @@ public class Usuario {
                 }else if("/limpar".equalsIgnoreCase(mensagemParaEnviar)){
                    limparTerminal(); 
                 }else{
-                    agora = LocalDateTime.now();
-                    String agoraFormatado = agora.format(formatter);
-                    String mensagem = agoraFormatado + " " + usuarioNome + ": " + mensagemParaEnviar;
-                    bufferedWriter.write(mensagem);
+                    bufferedWriter.write(mensagemParaEnviar);
                     bufferedWriter.newLine();
                     bufferedWriter.flush(); 
-                    adicionarAoLog(mensagem);
                 }
             }
             scanner.close();
@@ -100,16 +91,6 @@ public class Usuario {
             e.printStackTrace();
         }
     }   
-
-    private void adicionarAoLog(String mensagem) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(Conexao.ARQUIVO_LOG, true))) {
-            writer.write(mensagem);
-            writer.newLine();
-            writer.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     public static void main(String[] args) throws IOException {
         Scanner scanner = new Scanner(System.in);
